@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
 import * as dotenv from 'dotenv';
 import * as path from 'path';
 import * as fs from 'fs';
@@ -20,13 +21,13 @@ try {
   } else {
     const serviceAccount = JSON.parse(fs.readFileSync(absolutePath, 'utf8'));
     
-    admin.initializeApp({
+    const app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
       projectId: projectId || serviceAccount.project_id
     });
     
     const databaseId = process.env.FIREBASE_DATABASE_ID || 'carrasco-data-final';
-    db = admin.firestore(databaseId);
+    db = getFirestore(app, databaseId);
     console.log(`\x1b[32m[FIREBASE-SUCCESS] Firebase Admin SDK inicializado para o projeto: ${projectId || serviceAccount.project_id} (banco: ${databaseId})\x1b[0m`);
   }
 } catch (err: any) {

@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import { getFirestore } from 'firebase-admin/firestore';
 import axios from 'axios';
 import * as dotenv from 'dotenv';
 import * as https from 'https';
@@ -28,9 +29,10 @@ if (!fs.existsSync(resolvedPath)) {
   process.exit(1);
 }
 
+let app;
 try {
   const serviceAccount = JSON.parse(fs.readFileSync(resolvedPath, 'utf8'));
-  admin.initializeApp({
+  app = admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
   });
   console.log('✅ Firebase Admin inicializado com sucesso.');
@@ -40,7 +42,7 @@ try {
 }
 
 const databaseId = process.env.FIREBASE_DATABASE_ID || 'carrasco-data-final';
-const db = admin.firestore(databaseId);
+const db = getFirestore(app, databaseId);
 
 // 3. Configurações da Catraca obtidas do .env
 const CATRACA_IP = process.env.CATRACA_IP || '192.168.1.100';
