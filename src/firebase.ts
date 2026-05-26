@@ -26,15 +26,19 @@ console.warn = (...args) => {
 
 setLogLevel('error');
 
-const appConfig = {
-  ...firebaseConfig,
-  databaseId: firebaseConfig.firestoreDatabaseId === '(default)' ? undefined : firebaseConfig.firestoreDatabaseId
+const dynamicConfig = {
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || firebaseConfig.projectId,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || firebaseConfig.appId,
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || firebaseConfig.apiKey,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || firebaseConfig.authDomain,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || firebaseConfig.storageBucket,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || firebaseConfig.messagingSenderId,
 };
 
-const app = initializeApp(firebaseConfig);
-const dbId = firebaseConfig.firestoreDatabaseId === '(default)' ? undefined : firebaseConfig.firestoreDatabaseId;
+const app = initializeApp(dynamicConfig);
+const dbId = import.meta.env.VITE_FIREBASE_DATABASE_ID || (firebaseConfig.firestoreDatabaseId === '(default)' ? undefined : firebaseConfig.firestoreDatabaseId);
 
-console.log('Firebase initialized with project:', firebaseConfig.projectId, 'Database:', dbId || 'default');
+console.log('Firebase initialized with project:', dynamicConfig.projectId, 'Database:', dbId || 'default');
 
 // Initialize Firestore with explicit settings to avoid Listen NOT_FOUND errors
 export const db = initializeFirestore(app, {
