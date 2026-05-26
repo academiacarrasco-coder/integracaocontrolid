@@ -39,7 +39,8 @@ try {
   process.exit(1);
 }
 
-const db = admin.firestore();
+const databaseId = process.env.FIREBASE_DATABASE_ID || 'carrasco-data-final';
+const db = admin.firestore(databaseId);
 
 // 3. Configurações da Catraca obtidas do .env
 const CATRACA_IP = process.env.CATRACA_IP || '192.168.1.100';

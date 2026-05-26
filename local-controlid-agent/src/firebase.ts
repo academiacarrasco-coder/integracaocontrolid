@@ -25,8 +25,9 @@ try {
       projectId: projectId || serviceAccount.project_id
     });
     
-    db = admin.firestore();
-    console.log(`\x1b[32m[FIREBASE-SUCCESS] Firebase Admin SDK inicializado para o projeto: ${projectId || serviceAccount.project_id}\x1b[0m`);
+    const databaseId = process.env.FIREBASE_DATABASE_ID || 'carrasco-data-final';
+    db = admin.firestore(databaseId);
+    console.log(`\x1b[32m[FIREBASE-SUCCESS] Firebase Admin SDK inicializado para o projeto: ${projectId || serviceAccount.project_id} (banco: ${databaseId})\x1b[0m`);
   }
 } catch (err: any) {
   console.error(`\x1b[31m[FIREBASE-INIT-CRITICAL] Falha crítica ao carregar Firebase Admin SDK:\x1b[0m`, err.message);

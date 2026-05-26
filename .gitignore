@@ -12,5 +12,6 @@ serviceAccountKey.json
 service-account.json
 *service-account*.json
 *serviceAccount*.json
+*firebase-adminsdk*.json
 *.pem
 *.key
