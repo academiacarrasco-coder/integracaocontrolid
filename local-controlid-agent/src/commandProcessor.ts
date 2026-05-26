@@ -13,7 +13,9 @@ export class CommandProcessor {
   async processCommand(commandId: string, cmdData: any) {
     if (!db) return;
     
-    const docRef = db.collection('controlIdCommands').doc(commandId);
+    const suffix = process.env.FIREBASE_ENV_SUFFIX || '';
+    const commandsCollection = `controlIdCommands${suffix}`;
+    const docRef = db.collection(commandsCollection).doc(commandId);
     
     try {
       // 1. Transação atômica para travar o status 'pending'

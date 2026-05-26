@@ -9,19 +9,24 @@ async function bootstrap() {
     process.exit(1);
   }
 
+  const suffix = process.env.FIREBASE_ENV_SUFFIX || '';
+  const COMMANDS_COLLECTION = `controlIdCommands${suffix}`;
+  const DEVICES_COLLECTION = `controlIdDevices${suffix}`;
+
   Logger.info('========================================================');
   Logger.info('   INICIANDO AGENTE LOCAL CONTROL ID — CARRASCO FIT');
+  Logger.info(`   Ambiente / Sufixo das coleções: "${suffix || '(produção)'}"`);
   Logger.info('========================================================');
 
   const client = new ControlIdClient();
   const processor = new CommandProcessor();
 
   // 1. Seeding inicial do dispositivo no Firestore se não existir
-  const deviceRef = db.collection('controlIdDevices').doc('iface-principal');
+  const deviceRef = db.collection(DEVICES_COLLECTION).doc('iface-principal');
   try {
     const docSnapshot = await deviceRef.get();
     if (!docSnapshot.exists) {
-      Logger.warn('Dispositivo "iface-principal" não encontrado no Firestore. Criando semeamento inicial...');
+      Logger.warn(`Dispositivo "iface-principal" não encontrado no Firestore (${DEVICES_COLLECTION}). Criando semeamento inicial...`);
       await deviceRef.set({
         id: 'iface-principal',
         name: 'iDFace Principal',
@@ -40,8 +45,8 @@ async function bootstrap() {
   }
 
   // 2. Ouvindo a fila de comandos em tempo real
-  Logger.info('Subscrevendo-se à fila de comandos controlIdCommands no Firestore...');
-  const unsubscribeCommands = db.collection('controlIdCommands')
+  Logger.info(`Subscrevendo-se à fila de comandos ${COMMANDS_COLLECTION} no Firestore...`);
+  const unsubscribeCommands = db.collection(COMMANDS_COLLECTION)
     .where('status', '==', 'pending')
     .onSnapshot((snapshot) => {
       if (snapshot.empty) return;

@@ -34,16 +34,20 @@ export class Logger {
   ) {
     try {
       if (!db) return;
+      
+      const suffix = process.env.FIREBASE_ENV_SUFFIX || '';
+      const logsCollection = `controlIdLogs${suffix}`;
+      
       const logData: ControlIdLog = {
         deviceId: 'iface-principal',
-        commandId,
+        commandId: commandId || null,
         type,
         status,
         message,
         createdAt: new Date().toISOString(),
         raw: raw || null
       };
-      await db.collection('controlIdLogs').add(logData);
+      await db.collection(logsCollection).add(logData);
     } catch (err: any) {
       console.error(`\x1b[31m[LOGGER-FIRESTORE-ERR] Não foi possível persistir o log no Firestore:\x1b[0m`, err.message);
     }
