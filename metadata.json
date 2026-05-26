@@ -1,0 +1,9 @@
+{
+  "name": "Carrasco Fit",
+  "description": "Sistema de Gestão para Academia Carrasco Fit - Controle de alunos, mensalidades, turmas e relatórios.",
+  "requestFramePermissions": [
+    "camera",
+    "usb",
+    "serial"
+  ]
+}

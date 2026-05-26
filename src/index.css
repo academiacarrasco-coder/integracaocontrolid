@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --animate-spin-slow: spin 3s linear infinite;
+}
+
+/* Global Icon Hover Effect */
+svg:hover {
+  outline: 2px solid #facc15 !important; /* yellow-400 */
+  outline-offset: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom class for registration number styling */
+.registration-number-highlight {
+  font-size: 1.1em;
+  color: #3b82f6; /* blue-500 */
+  font-weight: 800;
+}
+
+/* Hide number input arrows (spinners) */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}

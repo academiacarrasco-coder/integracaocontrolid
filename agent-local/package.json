@@ -1,0 +1,31 @@
+{
+  "name": "carrasco-fit-agent-local",
+  "version": "1.0.0",
+  "description": "Agente local Node.js para ponte entre Firestore e catracas Control iD iDFace",
+  "main": "agent.ts",
+  "scripts": {
+    "start": "tsx agent.ts",
+    "dev": "tsx watch agent.ts",
+    "build": "tsc"
+  },
+  "keywords": [
+    "controlid",
+    "idface",
+    "firebase",
+    "firestore",
+    "turnstile",
+    "iot"
+  ],
+  "author": "Carrasco Fit",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.6.8",
+    "dotenv": "^16.4.5",
+    "firebase-admin": "^12.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.7",
+    "tsx": "^4.7.2",
+    "typescript": "^5.4.5"
+  }
+}

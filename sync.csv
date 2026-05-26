@@ -1,0 +1,530 @@
+cid_metadata
+
+_visitors,Visitantes,3
+column_name,default_value,type,constraint,unique,name,foreign_key_object,foreign_key_field
+id,,BIGINT,5,0,,,
+user_id,,BIGINT,6,0,,users,id
+
+c_users,Usuários,1
+column_name,default_value,type,constraint,unique,name,foreign_key_object,foreign_key_field
+id,,BIGINT,5,0,,,
+user_id,,BIGINT,6,0,,users,id
+cpf,,TEXT,0,0,CPF,,
+
+c_visits,Visitas,2
+column_name,default_value,type,constraint,unique,name,foreign_key_object,foreign_key_field
+id,,BIGINT,5,0,,,
+visit_id,,BIGINT,6,0,,visits,id
+
+cid_data
+
+groups
+id,name
+1,Padrão
+
+scheduled_unlocks
+id,name,message,timestamp
+
+time_zones
+id,name
+1,Sempre Liberado
+
+time_spans
+id,time_zone_id,start,end,sun,mon,tue,wed,thu,fri,sat,hol1,hol2,hol3
+1,1,0,86399,1,1,1,1,1,1,1,1,1,1
+
+user_types
+id,custom_table_id,require_visitor
+1,3,1
+
+users
+id,registration,name,password,panic_password,salt,panic_salt,expires,user_type_id,begin_time,end_time,image_timestamp,last_access
+
+cards
+id,value,user_id,secret
+
+templates
+id,finger_position,finger_type,template,user_id
+
+face_templates
+id,face_type,template,user_id,length
+
+user_roles
+user_id,role
+
+visits
+id,visitor_id,host_id,begin_time,end_time,finished
+
+access_rules
+id,name,type,priority
+1,Regra de acesso padrão para o Grupo 1,1,0
+2,(Regra de Acesso automaticamente criada para o Grupo 1),1,127
+
+validations
+id,name,validation,parameters
+1,Acesso com máscara,mask,mask_present=1
+
+reports
+id,name,file_name,object,header,delimiter,line_break
+1,Acessos (Global),,access_logs,Data e Hora (Logs de Acesso);Autorização (Logs de Acesso);Identificação;Código (Usuário);Nome (Usuário);Matrícula (Usuário);Nome (Portal);Nome (Horário),;,\r\n
+2,Acessos por Usuário,,access_logs,Data e Hora (Logs de Acesso);Autorização (Logs de Acesso);Identificação;Código (Usuário);Nome (Usuário);Matrícula (Usuário);Nome (Portal);Nome (Horário),;,\r\n
+3,Acessos por Horário,,access_logs,Data e Hora (Logs de Acesso);Autorização (Logs de Acesso);Identificação;Código (Usuário);Nome (Usuário);Matrícula (Usuário);Nome (Horário),;,\r\n
+4,Acessos por Grupo,,access_logs,Data e Hora (Logs de Acesso);Autorização (Logs de Acesso);Identificação;Código (Usuário);Nome (Usuário);Matrícula (Usuário);Nome (Portal);Nome (Horário),;,\r\n
+5,Usuários,,users,Código (Usuário);Nome (Usuário);Matrícula (Usuário);Nome (Grupo);Administrador (Direito),;,\r\n
+6,Alarmes (Global),,alarm_logs,Data e Hora (Logs de Alarme);Evento (Logs de Alarme);Causa (Logs de Alarme);Código (Usuário);Nome (Usuário);Matrícula (Usuário),;,\r\n
+7,Chamadas (Global),,call_logs,Data e Hora (Logs de Chamada);Tipo de Chamada;Contato;Duração (s);Abertura remota;Modo de operação;Status da chamada,;,\r\n
+8,Ponto (Global),,access_logs,Data e Hora (Logs de Acesso);ID de Batida;Tipo de Batida;Autorização (Logs de Acesso);Identificação;Código (Usuário);Nome (Usuário);Matrícula (Usuário);Nome (Portal);Nome (Horário),;,\r\n
+9,Ponto por Usuário,,access_logs,Data e Hora (Logs de Acesso);ID de Batida;Tipo de Batida;Autorização (Logs de Acesso);Identificação;Código (Usuário);Nome (Usuário);Matrícula (Usuário);Nome (Portal);Nome (Horário),;,\r\n
+10,Ponto por Horário,,access_logs,Data e Hora (Logs de Acesso);ID de Batida;Tipo de Batida;Autorização (Logs de Acesso);Identificação;Código (Usuário);Nome (Usuário);Matrícula (Usuário);Nome (Horário),;,\r\n
+11,Ponto por Grupo,,access_logs,Data e Hora (Logs de Acesso);ID de Batida;Tipo de Batida;Autorização (Logs de Acesso);Identificação;Código (Usuário);Nome (Usuário);Matrícula (Usuário);Nome (Portal);Nome (Horário),;,\r\n
+
+report_columns
+id,report_id,type,sequence
+1,1,3,0
+2,1,3,1
+3,1,3,2
+4,1,3,3
+5,1,3,4
+6,1,3,5
+7,1,3,6
+8,1,3,7
+9,2,3,0
+10,2,3,1
+11,2,3,2
+12,2,3,3
+13,2,3,4
+14,2,3,5
+15,2,3,6
+16,2,3,7
+17,3,3,0
+18,3,3,1
+19,3,3,2
+20,3,3,3
+21,3,3,4
+22,3,3,5
+23,3,3,6
+24,4,3,0
+25,4,3,1
+26,4,3,2
+27,4,3,3
+28,4,3,4
+29,4,3,5
+30,4,3,6
+31,4,3,7
+32,5,3,0
+33,5,3,1
+34,5,3,2
+35,5,3,3
+36,5,3,4
+37,6,3,0
+38,6,3,1
+39,6,3,2
+40,6,3,3
+41,6,3,4
+42,6,3,5
+43,7,3,0
+44,7,3,1
+45,7,3,2
+46,7,3,3
+47,7,3,4
+48,7,3,5
+49,7,3,6
+50,8,3,0
+51,8,3,1
+52,8,3,2
+53,8,3,3
+54,8,3,4
+55,8,3,5
+56,8,3,6
+57,8,3,7
+58,8,3,8
+59,8,3,9
+60,9,3,0
+61,9,3,1
+62,9,3,2
+63,9,3,3
+64,9,3,4
+65,9,3,5
+66,9,3,6
+67,9,3,7
+68,9,3,8
+69,9,3,9
+70,10,3,0
+71,10,3,1
+72,10,3,2
+73,10,3,3
+74,10,3,4
+75,10,3,5
+76,10,3,6
+77,10,3,7
+78,10,3,8
+79,11,3,0
+80,11,3,1
+81,11,3,2
+82,11,3,3
+83,11,3,4
+84,11,3,5
+85,11,3,6
+86,11,3,7
+87,11,3,8
+88,11,3,9
+
+report_column_formats
+id,report_column_id,adjustment,width,fill,format
+1,1,0,0,0,%d/%m/%Y %H:%M:%S
+2,2,2,2,0,
+3,3,1,1, ,
+4,4,2,15,0,
+5,5,1,50, ,
+6,6,1,50, ,
+7,7,1,50, ,
+8,8,1,50, ,
+9,9,0,0,0,%d/%m/%Y %H:%M:%S
+10,10,2,2,0,
+11,11,1,1, ,
+12,12,2,15,0,
+13,13,1,50, ,
+14,14,1,50, ,
+15,15,1,50, ,
+16,16,1,50, ,
+17,17,0,0,0,%d/%m/%Y %H:%M:%S
+18,18,2,2,0,
+19,19,1,1, ,
+20,20,2,15,0,
+21,21,1,50, ,
+22,22,1,50, ,
+23,23,1,50, ,
+24,24,0,0,0,%d/%m/%Y %H:%M:%S
+25,25,2,2,0,
+26,26,1,1, ,
+27,27,2,15,0,
+28,28,1,50, ,
+29,29,1,50, ,
+30,30,1,50, ,
+31,31,1,50, ,
+32,32,2,15,0,
+33,33,1,50, ,
+34,34,1,50, ,
+35,35,1,50, ,
+36,36,1,1, ,
+37,37,0,0,0,%d/%m/%Y %H:%M:%S
+38,38,1,1, ,
+39,39,2,2,0,
+40,40,2,15,0,
+41,41,1,50, ,
+42,42,1,50, ,
+43,43,0,0,0,%d/%m/%Y %H:%M:%S
+44,44,1,1, ,
+45,45,1,50, ,
+46,46,0,0,0,
+47,47,1,1, ,
+48,48,1,1, ,
+49,49,1,1, ,
+50,50,0,0,0,%d/%m/%Y %H:%M:%S
+51,51,2,15,0,
+52,52,1,50, ,
+53,53,2,2,0,
+54,54,1,1, ,
+55,55,2,15,0,
+56,56,1,50, ,
+57,57,1,50, ,
+58,58,1,50, ,
+59,59,1,50, ,
+60,60,0,0,0,%d/%m/%Y %H:%M:%S
+61,61,2,15,0,
+62,62,1,50, ,
+63,63,2,2,0,
+64,64,1,1, ,
+65,65,2,15,0,
+66,66,1,50, ,
+67,67,1,50, ,
+68,68,1,50, ,
+69,69,1,50, ,
+70,70,0,0,0,%d/%m/%Y %H:%M:%S
+71,71,2,15,0,
+72,72,1,50, ,
+73,73,2,2,0,
+74,74,1,1, ,
+75,75,2,15,0,
+76,76,1,50, ,
+77,77,1,50, ,
+78,78,1,50, ,
+79,79,0,0,0,%d/%m/%Y %H:%M:%S
+80,80,2,15,0,
+81,81,1,50, ,
+82,82,2,2,0,
+83,83,1,1, ,
+84,84,2,15,0,
+85,85,1,50, ,
+86,86,1,50, ,
+87,87,1,50, ,
+88,88,1,50, ,
+
+object_field_report_columns
+id,report_column_id,object,field
+1,1,access_logs,time
+2,2,access_logs,event
+3,3,access_logs,identifier_id
+4,4,users,id
+5,5,users,name
+6,6,users,registration
+7,7,portals,name
+8,8,time_zones,name
+9,9,access_logs,time
+10,10,access_logs,event
+11,11,access_logs,identifier_id
+12,12,users,id
+13,13,users,name
+14,14,users,registration
+15,15,portals,name
+16,16,time_zones,name
+17,17,access_logs,time
+18,18,access_logs,event
+19,19,access_logs,identifier_id
+20,20,users,id
+21,21,users,name
+22,22,users,registration
+23,23,time_zones,name
+24,24,access_logs,time
+25,25,access_logs,event
+26,26,access_logs,identifier_id
+27,27,users,id
+28,28,users,name
+29,29,users,registration
+30,30,portals,name
+31,31,time_zones,name
+32,32,users,id
+33,33,users,name
+34,34,users,registration
+35,35,groups,name
+36,36,user_roles,role
+37,37,alarm_logs,time
+38,38,alarm_logs,event
+39,39,alarm_logs,cause
+40,40,users,id
+41,41,users,name
+42,42,users,registration
+43,43,call_logs,time
+44,44,call_logs,role
+45,45,call_logs,remote_uri
+46,46,call_logs,connection_time
+47,47,call_logs,dtmf_event
+48,48,call_logs,sip_mode
+49,49,call_logs,call_status
+50,50,access_logs,time
+51,51,log_types,id
+52,52,log_types,name
+53,53,access_logs,event
+54,54,access_logs,identifier_id
+55,55,users,id
+56,56,users,name
+57,57,users,registration
+58,58,portals,name
+59,59,time_zones,name
+60,60,access_logs,time
+61,61,log_types,id
+62,62,log_types,name
+63,63,access_logs,event
+64,64,access_logs,identifier_id
+65,65,users,id
+66,66,users,name
+67,67,users,registration
+68,68,portals,name
+69,69,time_zones,name
+70,70,access_logs,time
+71,71,log_types,id
+72,72,log_types,name
+73,73,access_logs,event
+74,74,access_logs,identifier_id
+75,75,users,id
+76,76,users,name
+77,77,users,registration
+78,78,time_zones,name
+79,79,access_logs,time
+80,80,log_types,id
+81,81,log_types,name
+82,82,access_logs,event
+83,83,access_logs,identifier_id
+84,84,users,id
+85,85,users,name
+86,86,users,registration
+87,87,portals,name
+88,88,time_zones,name
+
+counter_report_columns
+id,report_column_id,offset,step
+
+fixed_report_columns
+id,report_column_id,fixed
+
+report_filters
+id,report_id,object,field,value,visible,editable
+1,1,access_logs,time,"{""type"":""day"",""interval"":29,""finish"":0}",1,1
+3,1,users,id,,1,1
+4,1,portals,id,,1,1
+5,1,groups,id,,1,1
+6,1,time_zones,id,,1,1
+7,2,access_logs,event,,1,1
+8,2,access_logs,time,"{""type"":""day"",""interval"":29,""finish"":0}",1,1
+9,2,users,id,,1,1
+10,2,portals,id,,0,0
+11,2,groups,id,,0,0
+12,2,time_zones,id,,1,1
+13,3,access_logs,event,,1,1
+14,3,access_logs,time,"{""type"":""day"",""interval"":29,""finish"":0}",1,1
+15,3,users,id,,0,1
+16,3,portals,id,,0,1
+17,3,groups,id,,0,1
+18,3,time_zones,id,,1,1
+19,4,access_logs,event,,1,1
+20,4,access_logs,time,"{""type"":""day"",""interval"":29,""finish"":0}",1,1
+21,4,users,id,,0,1
+22,4,portals,id,,0,1
+23,4,groups,id,,1,1
+24,4,time_zones,id,,0,1
+25,5,users,id,,1,1
+26,5,groups,id,,1,1
+27,5,user_roles,role,,1,1
+28,5,time_zones,id,,1,1
+29,6,alarm_logs,time,"{""type"":""day"",""interval"":29,""finish"":0}",1,1
+30,6,alarm_logs,event,,1,1
+31,6,alarm_logs,cause,,1,1
+32,7,call_logs,time,"{""type"":""day"",""interval"":29,""finish"":0}",1,1
+33,7,call_logs,role,,1,1
+34,7,call_logs,dtmf_event,,1,1
+35,8,access_logs,time,"{""type"":""day"",""interval"":29,""finish"":0}",1,1
+36,8,log_types,id,,1,1
+37,8,users,id,,1,1
+38,8,portals,id,,1,1
+39,8,groups,id,,1,1
+40,8,time_zones,id,,1,1
+41,9,access_logs,event,,1,1
+42,9,access_logs,time,"{""type"":""day"",""interval"":29,""finish"":0}",1,1
+43,9,log_types,id,,1,1
+44,9,users,id,,1,1
+45,9,portals,id,,0,0
+46,9,groups,id,,0,0
+47,9,time_zones,id,,1,1
+48,10,access_logs,event,,1,1
+49,10,access_logs,time,"{""type"":""day"",""interval"":29,""finish"":0}",1,1
+50,10,log_types,id,,1,1
+51,10,users,id,,0,1
+52,10,portals,id,,0,1
+53,10,groups,id,,0,1
+54,10,time_zones,id,,1,1
+55,11,access_logs,event,,1,1
+56,11,access_logs,time,"{""type"":""day"",""interval"":29,""finish"":0}",1,1
+57,11,log_types,id,,1,1
+58,11,users,id,,0,1
+59,11,portals,id,,0,1
+60,11,groups,id,,1,1
+61,11,time_zones,id,,0,1
+
+alarm_zones
+zone,enabled,active_level,alarm_delay
+1,0,1,0
+2,0,1,0
+3,0,1,0
+4,0,1,0
+5,0,1,0
+
+portal_rules
+id,name,type,priority
+1,Acesso com máscara,1,1
+
+api_logins
+id,user_id,login,password,salt
+
+api_access_levels
+id,name
+
+api_commands
+id,api_access_level_id,name
+
+api_object_commands
+id,api_command_id,name
+
+api_object_field_commands
+id,api_object_command_id,name
+
+api_object_field_command_values
+api_object_field_command_id,value
+
+access_rule_actions
+access_rule_id,action_id
+
+access_rule_time_zones
+access_rule_id,time_zone_id
+1,1
+2,1
+
+access_rule_validations
+access_rule_id,validation_id
+
+alarm_zone_time_zones
+alarm_zone_id,time_zone_id
+1,1
+2,1
+3,1
+4,1
+5,1
+
+area_access_rules
+area_id,access_rule_id
+1,1
+2,1
+
+group_access_rules
+group_id,access_rule_id
+1,2
+
+scheduled_unlock_access_rules
+scheduled_unlock_id,access_rule_id
+
+portal_access_rules
+portal_id,access_rule_id
+1,2
+2,2
+
+portal_portal_rules
+portal_id,portal_rule_id
+
+portal_rule_actions
+portal_rule_id,action_id
+
+portal_rule_groups
+portal_rule_id,group_id,quantity
+
+portal_rule_time_zones
+portal_rule_id,time_zone_id
+
+portal_rule_users
+portal_rule_id,user_id
+
+portal_rule_validations
+portal_rule_id,validation_id
+1,1
+
+user_access_rules
+user_id,access_rule_id
+
+user_groups
+user_id,group_id
+
+api_login_api_access_levels
+api_login_id,api_access_level_id
+
+pins
+id,pin_type,value,user_id
+
+qrcodes
+id,value,user_id
+
+_visitors
+id,user_id
+
+c_users
+id,user_id,cpf
+
+c_visits
+id,visit_id

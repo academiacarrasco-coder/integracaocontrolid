@@ -1,0 +1,186 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields: uid, email, displayName, role (admin, employee), photoURL
+    //
+    // Collection: students
+    // Fields: name, email, phone, cpf, birthDate, planIds, planExpirations, status, nextPaymentDate, photoUrl, classIds
+    //
+    // Collection: payments
+    // Fields: studentId, amount, date, status, recordedBy, recordedByName, planIds
+    //
+    // Collection: classes
+    // Fields: name, modality, instructor, schedule, studentIds, entryWindowMinutes
+    //
+    // Collection: plans
+    // Fields: name, price, durationDays, durationMonths
+    //
+    // Collection: settings
+    // Fields: logoUrl, gymName
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.email == "academiacarrasco@gmail.com" ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isEmployee() {
+      return isAuthenticated() && (
+        isAdmin() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'employee' || 
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'))
+      );
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['role', 'displayName']) &&
+             data.role in ['admin', 'employee'] &&
+             data.displayName is string &&
+             (!('uid' in data) || data.uid is string) &&
+             (!('email' in data) || data.email is string) &&
+             (!('username' in data) || data.username is string) &&
+             (!('password' in data) || data.password is string) &&
+             (!('jobTitle' in data) || data.jobTitle is string) &&
+             (!('phone' in data) || data.phone is string) &&
+             (!('isProfessor' in data) || data.isProfessor is bool);
+    }
+
+    function isValidStudent(data) {
+      return data.keys().hasAll(['name', 'status']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             (!('email' in data) || data.email is string) &&
+             (!('planIds' in data) || data.planIds is list) &&
+             (!('planExpirations' in data) || data.planExpirations is map) &&
+             data.status in ['active', 'inactive'];
+    }
+
+    function isValidPayment(data) {
+      return data.keys().hasAll(['studentId', 'amount', 'date', 'status']) &&
+             data.studentId is string &&
+             data.amount is number &&
+             data.status in ['paid', 'pending', 'overdue'];
+    }
+
+    function isValidHardwareCommand(data) {
+      return data.keys().hasAll(['endpoint', 'status']) &&
+             data.endpoint is string && data.endpoint.size() <= 128 &&
+             data.status in ['pending', 'sent', 'success', 'error'] &&
+             (!('verb' in data) || data.verb in ['POST', 'GET']) &&
+             (!('body' in data) || data.body is map);
+    }
+
+    function hasNoSecrets(data) {
+      return !('password' in data) &&
+             !('senha' in data) &&
+             !('token' in data) &&
+             !('session' in data);
+    }
+
+    function isValidControlIdCommand(data) {
+      return data.keys().hasAll(['type', 'deviceId', 'status']) &&
+             data.type in ['unlock', 'testConnection'] &&
+             data.deviceId is string &&
+             data.status in ['pending', 'processing', 'success', 'error'] &&
+             hasNoSecrets(data);
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow get, list: if true; // Permite busca de RFID/Matrícula na catraca
+      allow create: if (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data);
+      allow update: if isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role && isValidUser(request.resource.data));
+      allow delete: if isAdmin();
+    }
+
+    match /students/{studentId} {
+      allow read: if true;
+      allow write: if isEmployee();
+    }
+
+    match /payments/{paymentId} {
+      allow read, write: if isEmployee();
+    }
+
+    match /classes/{classId} {
+      allow read, write: if isEmployee();
+    }
+
+    match /plans/{planId} {
+      allow read: if isEmployee();
+      allow write: if isAdmin();
+    }
+
+    match /settings/{settingId} {
+      allow read: if isEmployee();
+      allow write: if isAdmin();
+    }
+
+    match /publicSettings/{settingId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /attendance/{attendanceId} {
+      allow read, write: if isEmployee();
+    }
+
+    match /accessLogs/{logId} {
+      allow read: if isEmployee();
+      allow create: if true; // Permite que o servidor registre acessos
+    }
+
+    match /hardwareStatus/{docId} {
+      allow read: if isEmployee();
+      allow write: if true; // Permite que o servidor atualize status do roteador/catraca
+    }
+
+    match /controlIdDevices/{docId} {
+      allow read: if isEmployee();
+      allow write: if isAdmin();
+    }
+
+    match /controlIdCommands/{commandId} {
+      allow read: if isEmployee();
+      allow create: if isAdmin() && isValidControlIdCommand(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /controlIdLogs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() && hasNoSecrets(request.resource.data);
+      allow update, delete: if isAdmin();
+    }
+
+    match /hardwareCommands/{commandId} {
+      allow read, write: if true; // Permite que o servidor gerencie fila de comandos
+    }
+
+    match /_connection_test_/{docId} {
+      allow read, write: if true;
+    }
+  }
+}

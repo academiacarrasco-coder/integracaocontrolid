@@ -1,0 +1,164 @@
+{
+  "entities": {
+    "Student": {
+      "title": "Student",
+      "description": "A student registered in the gym.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Full name of the student" },
+        "email": { "type": "string", "format": "email", "description": "Email address" },
+        "photoUrl": { "type": "string", "description": "URL to the student's profile photo for facial recognition" },
+        "planIds": { "type": "array", "items": { "type": "string" }, "description": "IDs of the plans the student is enrolled in" },
+        "planExpirations": { "type": "object", "description": "Map of plan ID to expiration date (YYYY-MM-DD)" },
+        "status": { "type": "string", "enum": ["active", "inactive"], "description": "Current status of the student" },
+        "nextPaymentDate": { "type": "string", "format": "date", "description": "Next billing date" },
+        "uid": { "type": "string", "description": "Firebase Auth UID if linked" }
+      },
+      "required": ["name", "email", "status"]
+    },
+    "Plan": {
+      "title": "Plan",
+      "description": "A gym membership plan.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the plan (e.g., Monthly, Annual)" },
+        "price": { "type": "number", "description": "Price of the plan" },
+        "isCorporate": { "type": "boolean", "description": "Whether this is a corporate plan with no charge and special check-in" },
+        "durationDays": { "type": "integer", "description": "Validity period in days (optional if durationMonths is set)" },
+        "durationMonths": { "type": "integer", "description": "Validity period in months (optional if durationDays is set)" }
+      },
+      "required": ["name", "price"]
+    },
+    "Class": {
+      "title": "Class",
+      "description": "A specific class scheduled in the gym.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the class" },
+        "modality": { "type": "string", "description": "Modality of the class" },
+        "instructor": { "type": "string", "description": "Name of the instructor" },
+        "entryWindowMinutes": { "type": "integer", "description": "Minutes before class start allowing entry" },
+        "schedule": { 
+          "type": "object", 
+          "description": "Map of day names to {startTime, endTime} objects" 
+        },
+        "studentIds": { "type": "array", "items": { "type": "string" }, "description": "IDs of students enrolled in this class" }
+      },
+      "required": ["name", "instructor", "schedule"]
+    },
+    "Payment": {
+      "title": "Payment",
+      "description": "A payment record for a student.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "description": "ID of the student" },
+        "amount": { "type": "number", "description": "Gross amount paid" },
+        "fee": { "type": "number", "description": "Transaction fee or cost of collection" },
+        "netAmount": { "type": "number", "description": "Net amount after fee (amount - fee)" },
+        "date": { "type": "string", "format": "date-time", "description": "Date of payment" },
+        "status": { "type": "string", "enum": ["paid", "pending", "overdue"], "description": "Payment status" },
+        "method": { "type": "string", "enum": ["money", "pix", "credit", "debit", "recurring"], "description": "Payment method" },
+        "planIds": { "type": "array", "items": { "type": "string" }, "description": "IDs of the plans covered by this payment" },
+        "recordedBy": { "type": "string", "description": "UID of the employee who recorded the payment" },
+        "recordedByName": { "type": "string", "description": "Name of the employee who recorded the payment" }
+      },
+      "required": ["studentId", "amount", "date", "status", "method"]
+    },
+    "User": {
+      "title": "User",
+      "description": "An employee or admin user of the system.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID (only for Google login users)" },
+        "username": { "type": "string", "description": "Unique username for internal login" },
+        "password": { "type": "string", "description": "Password for internal login" },
+        "email": { "type": "string", "format": "email", "description": "Email address (optional for employees)" },
+        "displayName": { "type": "string", "description": "Display name" },
+        "role": { "type": "string", "enum": ["admin", "employee"], "description": "User role" },
+        "jobTitle": { "type": "string", "description": "Job title or function" },
+        "phone": { "type": "string", "description": "Contact phone number" },
+        "photoURL": { "type": "string", "description": "Profile photo URL" },
+        "status": { "type": "string", "enum": ["active", "pending"], "description": "User status" },
+        "isProfessor": { "type": "boolean", "description": "Whether the user is a professor (used for time clock control)" },
+        "permissions": { 
+          "type": "array", 
+          "items": { "type": "string" }, 
+          "description": "List of sections the user can access" 
+        }
+      },
+      "required": ["displayName", "role"]
+    },
+    "Attendance": {
+      "title": "Attendance",
+      "description": "Attendance record for a class.",
+      "type": "object",
+      "properties": {
+        "classId": { "type": "string", "description": "ID of the class" },
+        "studentId": { "type": "string", "description": "ID of the student" },
+        "date": { "type": "string", "format": "date", "description": "Date of attendance" }
+      },
+      "required": ["classId", "studentId", "date"]
+    },
+    "AccessLog": {
+      "title": "AccessLog",
+      "description": "Log of student entry/exit via turnstile.",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string", "description": "ID of the student" },
+        "timestamp": { "type": "string", "format": "date-time", "description": "Time of access" },
+        "type": { "type": "string", "enum": ["entry", "exit"], "description": "Type of access" }
+      },
+      "required": ["studentId", "timestamp", "type"]
+    },
+    "HardwareCommand": {
+      "title": "HardwareCommand",
+      "description": "A command queued for the turnstile to execute.",
+      "type": "object",
+      "properties": {
+        "verb": { "type": "string", "enum": ["POST", "GET"], "description": "HTTP method" },
+        "endpoint": { "type": "string", "description": "Device endpoint (e.g., create_objects, release)" },
+        "body": { "type": "object", "description": "Command payload" },
+        "status": { "type": "string", "enum": ["pending", "sent", "success", "error"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "sentAt": { "type": "string", "format": "date-time" },
+        "completedAt": { "type": "string", "format": "date-time" },
+        "uuid": { "type": "string", "description": "Unique request tracking ID" }
+      },
+      "required": ["endpoint", "status"]
+    },
+    "Settings": {
+      "title": "Settings",
+      "description": "Global application settings.",
+      "type": "object",
+      "properties": {
+        "logoUrl": { "type": "string", "description": "URL of the gym logo" },
+        "gymName": { "type": "string", "description": "Name of the gym" },
+        "securityPassword": { "type": "string", "description": "Password for sensitive actions" },
+        "systemPassword": { "type": "string", "description": "Password for initial system access" },
+        "adminPassword": { "type": "string", "description": "Password required for administrator login" },
+        "registeredDeviceId": { "type": "string", "description": "The Serial Number of the authorized iDFace device" }
+      }
+    },
+    "PublicSettings": {
+      "title": "PublicSettings",
+      "description": "Publicly accessible application settings.",
+      "type": "object",
+      "properties": {
+        "systemPassword": { "type": "string", "description": "Password for initial system access" },
+        "adminPassword": { "type": "string", "description": "Password required for administrator login (hashed or checked server-side if possible, but here used for client-side verification)" }
+      }
+    }
+  },
+  "firestore": {
+    "/students/{studentId}": { "schema": "Student", "description": "Gym students" },
+    "/plans/{planId}": { "schema": "Plan", "description": "Membership plans" },
+    "/classes/{classId}": { "schema": "Class", "description": "Gym classes" },
+    "/payments/{paymentId}": { "schema": "Payment", "description": "Payment history" },
+    "/attendance/{attendanceId}": { "schema": "Attendance", "description": "Class attendance records" },
+    "/accessLogs/{logId}": { "schema": "AccessLog", "description": "Turnstile access logs" },
+    "/hardwareCommands/{commandId}": { "schema": "HardwareCommand", "description": "Turnstile commands queue" },
+    "/users/{userId}": { "schema": "User", "description": "System users and roles" },
+    "/settings/global": { "schema": "Settings", "description": "Global settings" },
+    "/publicSettings/config": { "schema": "PublicSettings", "description": "Public configuration" }
+  }
+}
