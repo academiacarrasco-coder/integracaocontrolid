@@ -231,13 +231,13 @@ export class ControlIdClient {
 
       const configPayload = {
         general: {
-          online: 1 // Habilita Modo Online (Remote Authorization)
+          online: "1" // Habilita Modo Online (Remote Authorization) como String
         },
         monitor: {
           hostname: agentIp,
-          port: agentPort,
+          port: String(agentPort), // String obrigatória
           path: "/push",
-          request_timeout: 5000
+          request_timeout: "5000" // String obrigatória
         }
       };
 
