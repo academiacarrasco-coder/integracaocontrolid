@@ -15,3 +15,7 @@ service-account.json
 *firebase-adminsdk*.json
 *.pem
 *.key
+
+# Local Turnstile Agent Caches
+local-students.json
+offline-logs.json

@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import * as https from 'https';
+import { Logger } from './logger';
 
 export class ControlIdClient {
   private axiosInstance: AxiosInstance;
@@ -213,6 +214,50 @@ export class ControlIdClient {
       return response.data;
     } catch (err: any) {
       throw new Error(`Erro ao consultar estatísticas do sistema: ${err.message}`);
+    }
+  }
+
+  // Configura a catraca automaticamente para enviar as requisições de Push para o Agente Local
+  async configurePushNotification(agentIp: string, agentPort: number): Promise<boolean> {
+    if (this.isSimulator) {
+      Logger.success(`[ControlIdClient][SIM] Configuração de Push simulada com sucesso para http://${agentIp}:${agentPort}/push`);
+      return true;
+    }
+
+    let session = '';
+    try {
+      session = await this.login();
+      Logger.info(`[ControlIdClient] Configurando URL de Push no equipamento para: http://${agentIp}:${agentPort}/push`);
+
+      const configPayload = {
+        general: {
+          online: 1 // Habilita Modo Online (Remote Authorization)
+        },
+        monitor: {
+          hostname: agentIp,
+          port: agentPort,
+          path: "/push",
+          request_timeout: 5000
+        }
+      };
+
+      const response = await this.axiosInstance.post(
+        `/set_configuration.fcgi?session=${session}`,
+        configPayload
+      );
+
+      if (response.status === 200) {
+        Logger.success(`[ControlIdClient] Configuração de Push e Modo Online aplicada com sucesso no leitor!`);
+        return true;
+      }
+      throw new Error(`Status de retorno inesperado: ${response.status}`);
+    } catch (err: any) {
+      Logger.error(`[ControlIdClient] Falha ao configurar URL de Push na catraca: ${err.message}`);
+      return false;
+    } finally {
+      if (session) {
+        await this.logout(session);
+      }
     }
   }
 }

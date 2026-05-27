@@ -34,7 +34,7 @@ export interface ControlIdCommand {
 export interface ControlIdLog {
   id?: string;
   deviceId: string;
-  commandId?: string;
+  commandId?: string | null;
   type: "testConnection" | "unlock" | "system";
   status: "success" | "error" | "info";
   message: string;

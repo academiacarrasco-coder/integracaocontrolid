@@ -1,7 +1,24 @@
+import * as os from 'os';
 import { db, admin } from './firebase';
 import { Logger } from './logger';
 import { ControlIdClient } from './ControlIdClient';
 import { CommandProcessor } from './commandProcessor';
+import { CarrascoStudentStatusProvider } from './studentStatus';
+import { LocalServer } from './localServer';
+
+function getLocalIpAddress(): string {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name] || []) {
+      // Suporta Node v18+ que usa 'IPv4' e versões anteriores
+      const family = String(iface.family);
+      if ((family === 'IPv4' || family === '4') && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  return '127.0.0.1';
+}
 
 async function bootstrap() {
   if (!db) {
@@ -21,7 +38,23 @@ async function bootstrap() {
   const client = new ControlIdClient();
   const processor = new CommandProcessor();
 
-  // 1. Seeding inicial do dispositivo no Firestore se não existir
+  // 1. Inicializa o provedor de status e o servidor local
+  const provider = new CarrascoStudentStatusProvider();
+  const localPort = parseInt(process.env.AGENT_PORT || '8000');
+  const localServer = new LocalServer(localPort, provider);
+
+  // Executa sincronização inicial do cache de alunos em disco
+  Logger.info('Baixando dados de alunos e planos para o cache offline local...');
+  await provider.syncLocalCache();
+
+  // Inicializa o servidor HTTP de escuta da catraca
+  localServer.start();
+
+  // Configura IP e porta para provisionamento do push na catraca
+  const agentIp = process.env.AGENT_IP || getLocalIpAddress();
+  Logger.info(`IP do Agente Local detectado para pareamento da catraca: ${agentIp}`);
+
+  // 2. Seeding inicial do dispositivo no Firestore se não existir
   const deviceRef = db.collection(DEVICES_COLLECTION).doc('iface-principal');
   try {
     const docSnapshot = await deviceRef.get();
@@ -44,7 +77,7 @@ async function bootstrap() {
     Logger.error(`Erro ao verificar semeamento inicial: ${err.message}`);
   }
 
-  // 2. Ouvindo a fila de comandos em tempo real
+  // 3. Ouvindo a fila de comandos em tempo real
   Logger.info(`Subscrevendo-se à fila de comandos ${COMMANDS_COLLECTION} no Firestore...`);
   const unsubscribeCommands = db.collection(COMMANDS_COLLECTION)
     .where('status', '==', 'pending')
@@ -62,9 +95,10 @@ async function bootstrap() {
       Logger.error(`Erro na escuta da coleção controlIdCommands: ${error.message}`);
     });
 
-  // 3. Batimento Cardíaco (Heartbeat) - Executado a cada 10 segundos
+  // 4. Batimento Cardíaco (Heartbeat) - Executado a cada 10 segundos
   let isCheckingHeartbeat = false;
   let lastStatus: 'online' | 'offline' | 'unknown' = 'unknown';
+  let isPushConfigured = false;
 
   const runHeartbeat = async () => {
     if (isCheckingHeartbeat) return;
@@ -94,6 +128,14 @@ async function bootstrap() {
           }
         });
 
+        // Configura ou reconfigura as regras de push na catraca quando ela entra online
+        if (!isPushConfigured || lastStatus !== 'online') {
+          const success = await client.configurePushNotification(agentIp, localPort);
+          if (success) {
+            isPushConfigured = true;
+          }
+        }
+
         if (lastStatus !== 'online') {
           Logger.success(`Catraca física iDFace está ONLINE! Conexão local estabelecida.`);
           await Logger.logToFirestore(
@@ -117,6 +159,7 @@ async function bootstrap() {
             `Equipamento local offline: ${pingRes.message || 'Timeout de comunicação local.'}`
           );
           lastStatus = 'offline';
+          isPushConfigured = false; // Permite reconfigurar quando voltar
         }
       }
     } catch (err: any) {
@@ -132,10 +175,24 @@ async function bootstrap() {
   // Executa batimentos periódicos a cada 10 segundos
   const heartbeatInterval = setInterval(runHeartbeat, 10000);
 
-  // 4. Desligamento Limpo (Graceful Shutdown)
+  // 5. Agendadores Periódicos de Sincronização de Dados
+  // A. Atualiza o cache local de alunos a cada 5 minutos
+  const cacheSyncInterval = setInterval(async () => {
+    await provider.syncLocalCache();
+  }, 5 * 60 * 1000);
+
+  // B. Envia logs salvos offline para a nuvem a cada 30 segundos
+  const logsSyncInterval = setInterval(async () => {
+    await localServer.syncOfflineLogs();
+  }, 30 * 1000);
+
+  // 6. Desligamento Limpo (Graceful Shutdown)
   const shutdown = () => {
     Logger.warn('\nEncerrando Agente Local de forma limpa...');
     clearInterval(heartbeatInterval);
+    clearInterval(cacheSyncInterval);
+    clearInterval(logsSyncInterval);
+    localServer.stop();
     unsubscribeCommands();
     Logger.info('Subscrições do Firestore encerradas. Até mais!');
     process.exit(0);
