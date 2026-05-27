@@ -8,6 +8,7 @@
     "dev": "tsx src/index.ts",
     "simulate": "tsx src/test-simulation.ts",
     "cli": "tsx src/cli.ts",
+    "unlock": "tsx -e \"import 'dotenv/config'; import { ControlIdClient } from './src/ControlIdClient'; new ControlIdClient().unlockTurnstile().then(() => console.log('>>> Liberação enviada com sucesso!')).catch(console.error)\"",
     "build": "tsc",
     "start": "node dist/index.js"
   },
