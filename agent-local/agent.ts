@@ -97,7 +97,7 @@ async function writeControlIdLog(
     const payload = {
       id: logRef.id,
       deviceId: "iface-principal",
-      commandId,
+      commandId: commandId || null,
       type,
       status,
       message,
