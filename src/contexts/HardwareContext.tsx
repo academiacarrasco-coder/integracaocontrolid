@@ -49,7 +49,7 @@ export function HardwareProvider({ children }: { children: React.ReactNode }) {
       port: initialPort,
       serverDomain: localStorage.getItem('turnstile_server_domain') || 'carrasco-fit-607856914066.us-east1.run.app',
       user: localStorage.getItem('turnstile_user') || 'admin',
-      password: '', // Removido por segurança da LGPD/Credenciais
+      password: 'admin', // Definido como fixo conforme solicitado
       session: '',
       doorTime: localStorage.getItem('turnstile_door_time') || '3',
       deviceModel: localStorage.getItem('turnstile_model') || 'idface',
