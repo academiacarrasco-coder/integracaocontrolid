@@ -19,6 +19,12 @@ import argparse
 import subprocess
 from pathlib import Path
 
+# Force UTF-8 encoding for stdout/stderr to prevent UnicodeEncodeError on Windows
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 AGENT_DIR = Path(".agent")
 PID_FILE = AGENT_DIR / "preview.pid"
 LOG_FILE = AGENT_DIR / "preview.log"
@@ -27,11 +33,21 @@ def get_project_root():
     return Path(".").resolve()
 
 def is_running(pid):
-    try:
-        os.kill(pid, 0)
-        return True
-    except OSError:
+    if sys.platform == 'win32':
+        import ctypes
+        kernel32 = ctypes.windll.kernel32
+        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+        handle = kernel32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        if handle:
+            kernel32.CloseHandle(handle)
+            return True
         return False
+    else:
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError:
+            return False
 
 def get_start_command(root):
     pkg_file = root / "package.json"
