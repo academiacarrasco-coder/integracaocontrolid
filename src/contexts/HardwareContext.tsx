@@ -49,7 +49,7 @@ export function HardwareProvider({ children }: { children: React.ReactNode }) {
       port: initialPort,
       serverDomain: localStorage.getItem('turnstile_server_domain') || 'carrasco-fit-607856914066.us-east1.run.app',
       user: localStorage.getItem('turnstile_user') || 'admin',
-      password: 'admin', // Definido como fixo conforme solicitado
+      password: localStorage.getItem('turnstile_password') || 'admin',
       session: '',
       doorTime: localStorage.getItem('turnstile_door_time') || '3',
       deviceModel: localStorage.getItem('turnstile_model') || 'idface',
@@ -84,6 +84,7 @@ export function HardwareProvider({ children }: { children: React.ReactNode }) {
       }
 
       const cmd = {
+        type: 'unlock',
         verb: "POST",
         endpoint: action,
         body: parameters ? { [parameters.split('=')[0]]: parseInt(parameters.split('=')[1]) || 1 } : {},
