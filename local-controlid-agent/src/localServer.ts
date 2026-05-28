@@ -173,6 +173,15 @@ export class LocalServer {
       res.end(JSON.stringify({ error: "Rota não encontrada." }));
     });
 
+    this.server.on('error', (err: any) => {
+      Logger.error(`[LocalServer] Erro no servidor HTTP: ${err.message}`);
+      if (err.code === 'EADDRINUSE') {
+        Logger.error(`[LocalServer] A porta ${this.port} ja esta em uso por outra aplicacao.`);
+        Logger.error('[LocalServer] Feche outras janelas/processos do agente ou reinicie o PC.');
+        process.exit(1);
+      }
+    });
+
     this.server.listen(this.port, () => {
       Logger.success(`[LocalServer] Servidor HTTP do Agente Local ouvindo na porta: ${this.port}`);
       Logger.info(`[LocalServer] Configure a catraca com o Push URL: http://<IP_DO_COMPUTADOR>:${this.port}/push`);

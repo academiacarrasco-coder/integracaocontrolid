@@ -168,7 +168,13 @@ export class ControlIdClient {
         parameters = `allow=${direction}`;
       }
       
-      const actionPayload = {
+      // Monta o payload de autorização remota para que o iDFace mostre a tela verde, acenda o LED verde e toque o beep
+      const authPayload = {
+        event: 7, // 7 = Acesso Autorizado / Liberado (feedback visual verde + som)
+        user_id: 1,
+        user_name: 'Acesso Liberado', // Texto exibido na tela LCD
+        user_image: false,
+        portal_id: 1,
         actions: [
           {
             action,
@@ -178,8 +184,8 @@ export class ControlIdClient {
       };
 
       const response = await this.axiosInstance.post(
-        `/execute_actions.fcgi?session=${session}`,
-        actionPayload
+        `/remote_user_authorization.fcgi?session=${session}`,
+        authPayload
       );
       
       return response.data;
