@@ -582,7 +582,7 @@ export default function RecepcaoStandAlone() {
   const [isTelaoActive, setIsTelaoActive] = useState(false);
   const [isReleasing, setIsReleasing] = useState<'entry' | 'exit' | null>(null);
   const [isEnrollingRemotely, setIsEnrollingRemotely] = useState(false);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'alunos' | 'treinos' | 'financeiro' | 'relatorios' | 'configuracoes'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'alunos' | 'relatorios' | 'configuracoes'>('dashboard');
 
   // Fallback to MOCK_STUDENTS to matching visual screenshot 1 out of the box if DB is empty
   const activeStudentsList = students.length > 0 ? students : MOCK_STUDENTS;
@@ -755,31 +755,6 @@ export default function RecepcaoStandAlone() {
               Alunos
             </button>
 
-            <button 
-              onClick={() => setActiveTab('treinos')}
-              className={cn(
-                "w-full flex items-center gap-4 px-5 py-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer",
-                activeTab === 'treinos'
-                  ? "bg-[#2e1d4b]/30 text-[#a855f7] border-l-4 border-[#a855f7]"
-                  : "text-neutral-400 hover:text-white hover:bg-white/5"
-              )}
-            >
-              <Dumbbell size={16} />
-              Treinos
-            </button>
-
-            <button 
-              onClick={() => setActiveTab('financeiro')}
-              className={cn(
-                "w-full flex items-center gap-4 px-5 py-4 rounded-xl text-xs font-bold uppercase tracking-wider transition-all cursor-pointer",
-                activeTab === 'financeiro'
-                  ? "bg-[#2e1d4b]/30 text-[#a855f7] border-l-4 border-[#a855f7]"
-                  : "text-neutral-400 hover:text-white hover:bg-white/5"
-              )}
-            >
-              <CreditCard size={16} />
-              Financeiro
-            </button>
 
             <button 
               onClick={() => setActiveTab('relatorios')}
@@ -856,8 +831,6 @@ export default function RecepcaoStandAlone() {
             <h2 className="text-3xl font-black italic tracking-tighter text-white uppercase leading-none">
               {activeTab === 'dashboard' && 'Cliente do Cliente'}
               {activeTab === 'alunos' && 'Gestão de Alunos'}
-              {activeTab === 'treinos' && 'Central de Treinos'}
-              {activeTab === 'financeiro' && 'Controle Financeiro'}
               {activeTab === 'relatorios' && 'Relatório de Acessos'}
               {activeTab === 'configuracoes' && 'Configurações de Hardware'}
             </h2>
@@ -934,45 +907,6 @@ export default function RecepcaoStandAlone() {
               </div>
             )}
 
-            {activeTab === 'alunos' && (
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => {
-                    const name = prompt("Nome do novo Aluno:");
-                    if (!name) return;
-                    alert(`Aluno "${name}" cadastrado com sucesso!`);
-                  }}
-                  className="px-6 py-4 bg-[#140e1f]/60 hover:bg-[#1e142e] text-[#a855f7] rounded-2xl font-black text-xs uppercase tracking-widest transition-all border border-[#a855f7] shadow-[0_0_15px_rgba(168,85,247,0.25)] hover:shadow-[0_0_25px_rgba(168,85,247,0.45)] flex items-center gap-2 cursor-pointer"
-                >
-                  <Plus size={14} />
-                  NOVO ALUNO
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'treinos' && (
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => alert("Central de montagem de treinos habilitada.")}
-                  className="px-6 py-4 bg-[#140e1f]/60 hover:bg-[#1e142e] text-[#3b82f6] rounded-2xl font-black text-xs uppercase tracking-widest transition-all border border-[#3b82f6] shadow-[0_0_15px_rgba(59,130,246,0.25)] hover:shadow-[0_0_25px_rgba(59,130,246,0.45)] flex items-center gap-2 cursor-pointer"
-                >
-                  <Dumbbell size={14} />
-                  MONTAR TREINO
-                </button>
-              </div>
-            )}
-
-            {activeTab === 'financeiro' && (
-              <div className="flex flex-wrap items-center gap-3">
-                <button
-                  onClick={() => alert("Registrar entrada ou saída financeira de caixa diário...")}
-                  className="px-6 py-4 bg-[#140e1f]/60 hover:bg-[#1e142e] text-[#22c55e] rounded-2xl font-black text-xs uppercase tracking-widest transition-all border border-[#22c55e] shadow-[0_0_15px_rgba(34,197,94,0.25)] hover:shadow-[0_0_25px_rgba(34,197,94,0.45)] flex items-center gap-2 cursor-pointer"
-                >
-                  <DollarSign size={14} />
-                  REGISTRAR CAIXA
-                </button>
-              </div>
-            )}
 
             {activeTab === 'relatorios' && (
               <div className="flex flex-wrap items-center gap-3">
