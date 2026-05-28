@@ -43,6 +43,7 @@ try {
 
 const databaseId = process.env.FIREBASE_DATABASE_ID || 'carrasco-data-final';
 const db = getFirestore(app, databaseId);
+db.settings({ ignoreUndefinedProperties: true });
 
 // 3. Configurações da Catraca obtidas do .env
 const CATRACA_IP = process.env.CATRACA_IP || '192.168.1.100';
