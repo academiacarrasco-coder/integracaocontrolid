@@ -144,7 +144,9 @@ async function executeRelayRelease(session: string): Promise<any> {
   if (action === 'door') {
     parameters = 'door=1';
   } else if (action === 'catra') {
-    parameters = 'allow=1';
+    parameters = 'allow=both,reason=3';
+  } else if (action === 'sec_box') {
+    parameters = 'reason=3';
   }
 
   const payload = {
