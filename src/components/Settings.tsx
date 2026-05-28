@@ -87,13 +87,8 @@ export default function Settings() {
         logoUrl: formData.logoUrl,
         securityPassword: formData.securityPassword,
         webhookUrl: formData.webhookUrl,
-        turnstileUrl: formData.turnstileUrl,
-        cloudId: formData.cloudId,
-        equipmentId: formData.equipmentId,
-        cloudUser: formData.cloudUser,
-        cloudPassword: formData.cloudPassword,
         updatedAt: serverTimestamp()
-      });
+      }, { merge: true });
       
       // Update current user's password in their document
       if (profile?.uid) {
@@ -223,131 +218,7 @@ export default function Settings() {
             </p>
           </div>
 
-          <div className="space-y-4 pt-4 border-t-2 border-neutral-600">
-            <h3 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2">
-              <Cpu size={16} className="text-yellow-400" /> Configurações da Catraca (iDCloud / Push)
-            </h3>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between items-center">
-                    <label className="text-xs font-bold text-neutral-500 uppercase">URL iDCloud Ativo</label>
-                    <button 
-                      type="button"
-                      onClick={() => setFormData({ ...formData, turnstileUrl: window.location.origin })}
-                      className="text-[10px] font-black text-yellow-400 uppercase hover:underline"
-                    >
-                      Usar Link Atual
-                    </button>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="https://push.idsecure.com.br/api"
-                    className="w-full px-4 py-3 bg-neutral-900 border-2 border-neutral-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400/20 focus:border-yellow-400 transition-all text-white text-sm"
-                    value={formData.turnstileUrl}
-                    onChange={(e) => setFormData({ ...formData, turnstileUrl: e.target.value })}
-                  />
-                </div>
-              </div>
 
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-neutral-500 uppercase">Código ID Cloud</label>
-                <input
-                  type="text"
-                  placeholder="Ex: 45428515"
-                  className="w-full px-4 py-3 bg-neutral-900 border-2 border-neutral-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400/20 focus:border-yellow-400 transition-all text-white text-sm"
-                  value={formData.cloudId}
-                  onChange={(e) => setFormData({ ...formData, cloudId: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-neutral-500 uppercase">Usuário iDCloud</label>
-                <input
-                  type="text"
-                  placeholder="E-mail de acesso ao iDCloud"
-                  className="w-full px-4 py-3 bg-neutral-900 border-2 border-neutral-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400/20 focus:border-yellow-400 transition-all text-white text-sm"
-                  value={formData.cloudUser}
-                  onChange={(e) => setFormData({ ...formData, cloudUser: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-neutral-500 uppercase">Senha iDCloud</label>
-                <div className="relative">
-                  <input
-                    type={showSecurityPassword ? "text" : "password"}
-                    placeholder="Senha do portal iDCloud"
-                    className="w-full px-4 py-3 bg-neutral-900 border-2 border-neutral-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400/20 focus:border-yellow-400 transition-all text-white text-sm pr-10"
-                    value={formData.cloudPassword}
-                    onChange={(e) => setFormData({ ...formData, cloudPassword: e.target.value })}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowSecurityPassword(!showSecurityPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-white transition-colors"
-                  >
-                    {showSecurityPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-neutral-500 uppercase">ID do Equipamento</label>
-                <select
-                  className="w-full px-4 py-3 bg-neutral-900 border-2 border-neutral-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-yellow-400/20 focus:border-yellow-400 transition-all text-white text-sm appearance-none"
-                  value={formData.equipmentId}
-                  onChange={(e) => setFormData({ ...formData, equipmentId: e.target.value })}
-                >
-                  <option value="0">0</option>
-                  <option value="1">1</option>
-                </select>
-              </div>
-
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs font-bold text-yellow-400 uppercase">Configuração da Catraca (Servidor Direto)</label>
-                  <div className="relative">
-                    <input
-                      readOnly
-                      type="text"
-                      className="w-full px-4 py-3 bg-neutral-800 border-2 border-yellow-400/50 rounded-xl text-yellow-400 text-xs font-mono font-bold"
-                      value="carrasco-fit-607856914066.us-east1.run.app"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText("carrasco-fit-607856914066.us-east1.run.app");
-                        alert('DOMÍNIO COPIADO!\n\nUse este endereço (SEM HTTPS) no campo "Servidor" da sua catraca.');
-                      }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1.5 bg-yellow-400 text-black text-[10px] font-black rounded-lg hover:bg-yellow-300 shadow-lg"
-                    >
-                      COPIAR DOMÍNIO
-                    </button>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-3 bg-neutral-800/50 border border-neutral-700 rounded-xl">
-                    <p className="text-[10px] font-black text-white uppercase mb-1">Opção A (Porta 443)</p>
-                    <p className="text-[9px] text-neutral-400 leading-tight">SSL/Cripto: <span className="text-yellow-400 font-bold">LIGADO (ON)</span></p>
-                  </div>
-                  <div className="p-3 bg-neutral-800/50 border border-yellow-400/20 rounded-xl">
-                    <p className="text-[10px] font-black text-yellow-400 uppercase mb-1">Opção B (Porta 80)</p>
-                    <p className="text-[9px] text-neutral-400 leading-tight">SSL/Cripto: <span className="text-white font-bold">DESLIGADO (OFF)</span></p>
-                  </div>
-                </div>
-                
-                <p className="text-[10px] text-neutral-500 font-bold uppercase leading-tight">
-                  ESTE É O SEU SERVIDOR DIRETO. USE PARA CONFIGURAR O IDCLOUD DA CATRACA.
-                </p>
-              </div>
-            </div>
-            <p className="text-[10px] text-neutral-500 uppercase font-bold">
-              Para usar o modo online, configure a URL de Push acima no menu da sua catraca (Rede {'>'} Servidor Externo).
-            </p>
-          </div>
 
           <div className="space-y-2">
             <label className="text-xs font-bold text-neutral-500 uppercase flex items-center gap-2">

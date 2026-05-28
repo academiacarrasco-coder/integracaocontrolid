@@ -20,7 +20,8 @@ import {
   Eye,
   EyeOff,
   X,
-  Unlock
+  Unlock,
+  DoorOpen
 } from 'lucide-react';
 import { auth, db } from '../firebase';
 import { signOut } from 'firebase/auth';
@@ -45,10 +46,10 @@ interface LayoutProps {
 const navItems = [
   { name: 'Painel', path: '/', icon: LayoutDashboard, adminOnly: false, permission: 'dashboard' },
   { name: 'Alunos', path: '/students', icon: Users, adminOnly: false, permission: 'students' },
+  { name: 'Controle de Acesso', path: '/access', icon: DoorOpen, adminOnly: false, permission: 'access' },
   { name: 'Planos', path: '/plans', icon: SettingsIcon, adminOnly: true, permission: 'plans' },
   { name: 'Aulas', path: '/classes', icon: Calendar, adminOnly: false, permission: 'classes' },
   { name: 'Cobranças', path: '/payments', icon: CreditCard, adminOnly: false, permission: 'payments' },
-  { name: 'Catraca (Facial)', path: '/turnstile', icon: ScanFace, adminOnly: false, permission: 'turnstile' },
   { name: 'Relatórios', path: '/reports', icon: BarChart3, adminOnly: true, permission: 'reports' },
   { name: 'Exportar', path: '/export', icon: Download, adminOnly: true, permission: 'export' },
   { name: 'Funcionários', path: '/users', icon: ShieldCheck, adminOnly: true, permission: 'users' },
@@ -159,6 +160,7 @@ export default function Layout({ children, user, profile }: LayoutProps) {
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
           {navItems.filter(item => {
             if (item.permission === 'dashboard') return true;
+            if (item.permission === 'access') return true;
             return hasPermission(item.permission);
           }).map((item) => (
             <Link
@@ -173,12 +175,6 @@ export default function Layout({ children, user, profile }: LayoutProps) {
             >
               <item.icon size={18} />
               {item.name}
-              {item.path === '/turnstile' && (
-                <div className={cn(
-                  "absolute right-4 w-2 h-2 rounded-full",
-                  isHardwareConnected ? "bg-green-500 animate-pulse" : "bg-red-500"
-                )} />
-              )}
             </Link>
           ))}
 
@@ -196,7 +192,7 @@ export default function Layout({ children, user, profile }: LayoutProps) {
             </div>
             {!isHardwareConnected ? (
               <Link 
-                to="/turnstile#hardware-config"
+                to="/recepcao"
                 className="block w-full py-2 bg-neutral-800 hover:bg-neutral-700 text-white text-[8px] font-black uppercase tracking-widest text-center rounded-lg transition-all"
               >
                 Configurar Conexão
@@ -293,7 +289,7 @@ export default function Layout({ children, user, profile }: LayoutProps) {
             )}
             {!isHardwareConnected && (
               <Link
-                to="/turnstile#hardware-config"
+                to="/recepcao"
                 className="flex items-center gap-2 px-4 py-2 bg-neutral-900 border-2 border-neutral-600 text-neutral-500 hover:text-white hover:border-yellow-400 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
               >
                 <Wifi size={14} />

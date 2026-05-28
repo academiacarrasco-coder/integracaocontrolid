@@ -4,6 +4,7 @@ import { useGymData } from '../hooks/useGymData';
 import { db } from '../firebase';
 import { doc, updateDoc, collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { v4 as uuidv4 } from 'uuid';
+import { authorizeUser, invalidateSession, type AuthorizePayload } from '../lib/controlIdSession';
 
 interface HardwareContextType {
   isHardwareConnected: boolean;
@@ -12,6 +13,7 @@ interface HardwareContextType {
   hardwareLogs: string[];
   addHardwareLog: (msg: string) => void;
   releaseTurnstile: () => Promise<boolean>;
+  releaseDeviceDirect: (opts: AuthorizePayload) => Promise<{ success: boolean; message: string }>;
   updateHardwareConfig: (keyOrObj: any, value?: any) => void;
   applyAdvancedConfig: () => Promise<void>;
   syncUser: (student: any) => Promise<boolean>;
@@ -22,6 +24,7 @@ interface HardwareContextType {
   testNetworkConnection: () => Promise<{ success: boolean; message: string; details?: string }>;
   fetchServerLogs: () => Promise<string[]>;
   forceStatusGreen: () => Promise<boolean>;
+  startRemoteFaceEnroll: (studentId: string, name: string) => Promise<boolean>;
   hardwareConfig: any;
   setHardwareConfig: (config: any) => void;
   setIsHardwareConnected: (connected: boolean) => void;
@@ -106,6 +109,33 @@ export function HardwareProvider({ children }: { children: React.ReactNode }) {
       addHardwareLog(`❌ Erro ao enviar liberação: ${err instanceof Error ? err.message : 'Falha'}`);
       return false;
     }
+  };
+
+  /**
+   * Libera acesso diretamente via remote_user_authorization.fcgi
+   * com gerenciamento automático de sessão e retry.
+   */
+  const releaseDeviceDirect = async (opts: AuthorizePayload): Promise<{ success: boolean; message: string }> => {
+    const cfg = {
+      ip: hardwareConfig.ip,
+      port: hardwareConfig.port,
+      protocol: hardwareConfig.protocol || 'http',
+      user: hardwareConfig.user,
+      password: hardwareConfig.password
+    };
+
+    if (!cfg.ip) return { success: false, message: 'IP do dispositivo não configurado' };
+    if (!cfg.password) return { success: false, message: 'Senha não configurada' };
+
+    addHardwareLog(`[DIRETO] Liberando ${opts.userName} (${opts.terminalType})...`);
+    const result = await authorizeUser(cfg, opts);
+
+    if (result.success) {
+      addHardwareLog(`✅ Liberação direta OK: ${result.message}`);
+    } else {
+      addHardwareLog(`❌ Falha na liberação direta: ${result.message}`);
+    }
+    return result;
   };
 
   const updateHardwareConfig = (keyOrObj: string | Record<string, any>, value?: any) => {
@@ -826,6 +856,53 @@ export function HardwareProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const startRemoteFaceEnroll = async (studentId: string, name: string) => {
+    addHardwareLog(`[NUVEM] Solicitando cadastro facial remoto na catraca para o aluno: ${name}...`);
+    try {
+      const getNumericId = (str: string) => {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+          hash = ((hash << 5) - hash) + str.charCodeAt(i);
+          hash |= 0;
+        }
+        return Math.abs(hash) % 100000000;
+      };
+
+      const numericId = getNumericId(studentId);
+
+      // 1. Envia o comando de cadastro facial remoto
+      const cmd = {
+        verb: "POST",
+        endpoint: "remote_enroll",
+        body: {
+          user_id: numericId,
+          type: "face",
+          save: 1
+        },
+        status: 'pending',
+        createdAt: serverTimestamp(),
+        uuid: uuidv4()
+      };
+
+      await addDoc(collection(db, 'hardwareCommands'), cmd);
+
+      // Notifica o servidor (fast-track)
+      try {
+        fetch('/api/hardware/notify-command', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(cmd)
+        }).catch(() => {});
+      } catch (e) {}
+
+      addHardwareLog("✅ Solicitação enviada! O leitor facial da catraca entrará em modo de cadastro em instantes.");
+      return true;
+    } catch (err) {
+      addHardwareLog(`❌ Erro ao iniciar cadastro facial na catraca: ${err instanceof Error ? err.message : 'Falha'}`);
+      return false;
+    }
+  };
+
   useEffect(() => {
     // Check status immediately on mount
     pollEvents();
@@ -844,6 +921,7 @@ export function HardwareProvider({ children }: { children: React.ReactNode }) {
       hardwareLogs,
       addHardwareLog,
       releaseTurnstile,
+      releaseDeviceDirect,
       updateHardwareConfig,
       applyAdvancedConfig,
       syncUser,
@@ -854,6 +932,7 @@ export function HardwareProvider({ children }: { children: React.ReactNode }) {
       testNetworkConnection,
       fetchServerLogs,
       forceStatusGreen,
+      startRemoteFaceEnroll,
       hardwareConfig,
       setHardwareConfig,
       setIsHardwareConnected

@@ -3,6 +3,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import admin from "firebase-admin";
 import { readFileSync, appendFileSync } from "fs";
+import { exec } from "child_process";
 import cors from "cors";
 import { createServer as createViteServer } from "vite";
 import { initializeApp as initializeAppClient, getApp as getAppClient, getApps as getAppsClient } from "firebase/app";
@@ -884,6 +885,22 @@ app.post("/result", async (req, res) => {
      }).catch(() => {});
   }
   res.status(200).end();
+});
+
+// --- Rota: Lançar o .bat da catraca ---
+app.post('/api/launch-bat', (req, res) => {
+  const batPath = path.join(process.cwd(), 'iniciar-recepcao.bat');
+  addLog(`[CATRACA-BAT] Executando: ${batPath}`);
+
+  // Abre o .bat em uma janela independente (sem bloquear o servidor)
+  exec(`start "" "${batPath}"`, { shell: 'cmd.exe' }, (err) => {
+    if (err) {
+      addLog(`[CATRACA-BAT] ❌ Erro: ${err.message}`);
+      return res.status(500).json({ success: false, error: err.message });
+    }
+    addLog(`[CATRACA-BAT] ✅ Iniciado com sucesso`);
+    res.json({ success: true, message: 'Catraca iniciada com sucesso!' });
+  });
 });
 
 // 4. Vite/Static serving

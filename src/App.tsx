@@ -10,11 +10,13 @@ import Students from './components/Students';
 import Plans from './components/Plans';
 import Classes from './components/Classes';
 import Payments from './components/Payments';
-import Turnstile from './components/Turnstile';
 import Reports from './components/Reports';
 import Export from './components/Export';
 import Settings from './components/Settings';
 import Users from './components/Users';
+import RecepcaoStandAlone from './components/RecepcaoStandAlone';
+import TelaoPage from './components/TelaoPage';
+import AccessControl from './components/AccessControl';
 import { 
   Loader2, 
   ShieldAlert, 
@@ -306,7 +308,7 @@ function Login() {
   return null;
 }
 
-export default function App() {
+function AuthenticatedApp() {
   const { user, profile, loading, isAdmin, isAdminVerified, isUnauthorized, hasPermission, isAuthenticated } = useAuth();
 
   if (loading) {
@@ -322,22 +324,35 @@ export default function App() {
   }
 
   return (
+    <Layout user={user} profile={profile}>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/students" element={hasPermission('students') ? <Students /> : <Navigate to="/" />} />
+        <Route path="/plans" element={hasPermission('plans') ? <Plans /> : <Navigate to="/" />} />
+        <Route path="/classes" element={hasPermission('classes') ? <Classes /> : <Navigate to="/" />} />
+        <Route path="/payments" element={hasPermission('payments') ? <Payments /> : <Navigate to="/" />} />
+        <Route path="/reports" element={hasPermission('reports') ? <Reports /> : <Navigate to="/" />} />
+        <Route path="/export" element={hasPermission('export') ? <Export /> : <Navigate to="/" />} />
+        <Route path="/settings" element={hasPermission('settings') ? <Settings /> : <Navigate to="/" />} />
+        <Route path="/users" element={isAdmin ? <Users /> : <Navigate to="/" />} />
+        <Route path="/access" element={hasPermission('access') || isAdmin ? <AccessControl /> : <Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </Layout>
+  );
+}
+
+export default function App() {
+  return (
     <Router>
-      <Layout user={user} profile={profile}>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/students" element={hasPermission('students') ? <Students /> : <Navigate to="/" />} />
-          <Route path="/plans" element={hasPermission('plans') ? <Plans /> : <Navigate to="/" />} />
-          <Route path="/classes" element={hasPermission('classes') ? <Classes /> : <Navigate to="/" />} />
-          <Route path="/payments" element={hasPermission('payments') ? <Payments /> : <Navigate to="/" />} />
-          <Route path="/turnstile" element={hasPermission('turnstile') ? <Turnstile /> : <Navigate to="/" />} />
-          <Route path="/reports" element={hasPermission('reports') ? <Reports /> : <Navigate to="/" />} />
-          <Route path="/export" element={hasPermission('export') ? <Export /> : <Navigate to="/" />} />
-          <Route path="/settings" element={hasPermission('settings') ? <Settings /> : <Navigate to="/" />} />
-          <Route path="/users" element={isAdmin ? <Users /> : <Navigate to="/" />} />
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
-      </Layout>
+      <Routes>
+        {/* Rota pública — abre sem login (usada pelo .bat da catraca) */}
+        <Route path="/recepcao" element={<RecepcaoStandAlone />} />
+        {/* Telão da catraca — abre em janela separada sem login */}
+        <Route path="/telao" element={<TelaoPage />} />
+        {/* Todas as outras rotas exigem autenticação */}
+        <Route path="/*" element={<AuthenticatedApp />} />
+      </Routes>
     </Router>
   );
 }
