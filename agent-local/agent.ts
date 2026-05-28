@@ -67,6 +67,20 @@ const turnstileClient = axios.create({
   httpsAgent
 });
 
+let cachedSession: string | null = null;
+
+// Interceptor para limpar a sessão em caso de erro 401
+turnstileClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      cachedSession = null;
+      logInfo('Sessão expirada na catraca (401). Um novo login será feito na próxima chamada.');
+    }
+    return Promise.reject(error);
+  }
+);
+
 // Sanitizador de logs para ocultar tokens e senhas
 function sanitizeLog(msg: string): string {
   return msg
@@ -114,6 +128,7 @@ async function writeControlIdLog(
 
 // 5. Helpers de Autenticação com a Catraca
 async function loginTurnstile(): Promise<string> {
+  if (cachedSession) return cachedSession;
   try {
     const res = await turnstileClient.post('/login.fcgi', {
       login: CATRACA_USER,
@@ -121,10 +136,12 @@ async function loginTurnstile(): Promise<string> {
     });
 
     if (res.status === 200 && res.data && res.data.session) {
-      return res.data.session;
+      cachedSession = res.data.session;
+      return cachedSession;
     }
     throw new Error('Retorno inválido da catraca no login.');
   } catch (err: any) {
+    cachedSession = null;
     const errorMsg = err.response ? `HTTP ${err.response.status} - ${JSON.stringify(err.response.data)}` : err.message;
     throw new Error(`Falha de autenticação na catraca: ${errorMsg}`);
   }
@@ -187,6 +204,17 @@ async function processControlIdCommand(docId: string, cmd: any) {
       };
     } else if (cmd.type === 'unlock') {
       responseData = await executeRelayRelease(session);
+    } else if (cmd.type === 'set_objects' || cmd.type === 'create_objects') {
+      logInfo(`Comando ${cmd.type} detectado. Sincronizando dados com a catraca...`);
+      const payload = cmd.body || cmd.payload || {};
+      const endpoint = cmd.type === 'create_objects' ? '/create_objects.fcgi' : '/set_objects.fcgi';
+      const syncRes = await turnstileClient.post(`${endpoint}?session=${session}`, payload);
+      responseData = syncRes.data;
+    } else if (cmd.type === 'destroy_objects') {
+      logInfo(`Comando destroy_objects detectado. Removendo dados na catraca...`);
+      const payload = cmd.body || cmd.payload || {};
+      const syncRes = await turnstileClient.post(`/destroy_objects.fcgi?session=${session}`, payload);
+      responseData = syncRes.data;
     } else {
       throw new Error(`Tipo de comando desconhecido: ${cmd.type}`);
     }
@@ -225,12 +253,8 @@ async function processControlIdCommand(docId: string, cmd: any) {
       docId,
       { error: errorMsg }
     );
-  } finally {
-    if (session) {
-      await logoutTurnstile(session);
-      logInfo('Sessão encerrada com a catraca de forma limpa.');
-    }
   }
+  // Removemos o bloco finally com logoutTurnstile para manter a sessão persistente
 }
 
 // 8. Escuta Ativa do Firestore (Fila de Comandos Control iD)
@@ -343,10 +367,48 @@ async function performHeartbeat() {
       undefined,
       { error: err.message }
     );
-  } finally {
-    if (session) {
-      await logoutTurnstile(session);
+  }
+  // Removemos o logout no finally para manter a sessão persistente
+}
+
+// 10. Limpeza de Comandos Fantasmas
+async function cleanupStuckCommands() {
+  logInfo('Iniciando verificação de comandos travados (Ghost Commands)...');
+  try {
+    const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
+    const snapshot = await db.collection(COMMANDS_COLLECTION)
+      .where('status', '==', 'processing')
+      .get();
+      
+    if (snapshot.empty) {
+      logInfo('Nenhum comando travado encontrado na inicialização.');
+      return;
     }
+
+    const batch = db.batch();
+    let count = 0;
+
+    snapshot.docs.forEach(doc => {
+      const data = doc.data();
+      // Opcional: Se não tiver data de início de processamento, limpa mesmo assim
+      if (!data.processingStartedAt || data.processingStartedAt < twoMinutesAgo) {
+        batch.update(doc.ref, {
+          status: 'error',
+          error: 'Comando interrompido por reinicialização do agente ou timeout.',
+          processedAt: new Date().toISOString()
+        });
+        count++;
+      }
+    });
+
+    if (count > 0) {
+      await batch.commit();
+      logInfo(`Limpeza concluída. ${count} comando(s) travado(s) marcado(s) com erro.`);
+    } else {
+      logInfo('Nenhum comando processando além do limite de tempo.');
+    }
+  } catch (err: any) {
+    logError(`Erro ao limpar comandos travados: ${err.message}`);
   }
 }
 
@@ -373,6 +435,9 @@ async function main() {
   } catch (e: any) {
     logError(`Erro ao inicializar documento de dados do leitor no Firestore: ${e.message}`);
   }
+
+  // Limpa comandos que ficaram travados de sessões anteriores
+  await cleanupStuckCommands();
 
   // Inicia o listener de comandos pendentes
   startCommandQueueListener();
